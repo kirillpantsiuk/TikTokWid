@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пульт: лайки и соцсети</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0f1d15;color:#f1e9d2;font-family:'Segoe UI',system-ui,sans-serif;padding:16px;max-width:640px;margin-inline:auto}
+h1{font-size:22px;margin:4px 0 12px;color:#e9d08e}
+h2{font-size:16px;margin:26px 0 8px;color:#9cc46e;border-bottom:1px solid #2c4a35;padding-bottom:6px}
+label{display:block;font-size:13px;opacity:.75;margin:10px 0 4px}
+input[type=text],input[type=number],textarea,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #2c4a35;background:#162b1f;color:#fff;font-size:16px;font-family:inherit}
+textarea{min-height:96px;resize:vertical}
+.row{display:flex;gap:10px}.row>*{flex:1}
+input[type=color]{width:100%;height:44px;border:1px solid #2c4a35;border-radius:10px;background:#162b1f;padding:3px}
+button{padding:12px 14px;border:0;border-radius:12px;font-size:15px;font-weight:700;color:#f6eed6;background:#2c4a35;cursor:pointer;font-family:inherit}
+button:active{transform:scale(.97)}
+button.main{background:linear-gradient(90deg,#8f6a2c,#d9b66c);color:#1a1208;width:100%;padding:14px;font-size:16px;margin-top:14px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.btns button{flex:1;min-width:110px}
+.box{background:#162b1f;border:1px solid #2c4a35;border-radius:12px;padding:10px 12px;font-size:13px;word-break:break-all;margin-top:6px}
+.box button{margin-top:8px;padding:8px 12px;font-size:13px}
+#status{position:sticky;top:0;z-index:9;padding:8px 12px;border-radius:10px;background:#162b1f;font-size:14px;margin-bottom:8px;border:1px solid #2c4a35}
+.chk{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:15px}
+.hint{font-size:13px;opacity:.7;margin:6px 0 0;line-height:1.4}
+.big{font-size:26px;font-weight:700;color:#e9d08e}
+</style>
+</head>
+<body>
+<h1>Пульт: лайки и соцсети</h1>
+<div id="status">Готов</div>
+
+<h2>Ссылки</h2>
+<label>Виджет лайков (Link в TikTok LIVE Studio)</label>
+<div class="box"><span id="l1"></span><br><button onclick="copy('l1')">Копировать</button></div>
+<label>Виджет соцсетей (Link в TikTok LIVE Studio)</label>
+<div class="box"><span id="l2"></span><br><button onclick="copy('l2')">Копировать</button></div>
+<label>Этот пульт на телефоне</label>
+<div class="box"><span id="l3"></span><br><button onclick="copy('l3')">Копировать</button></div>
+
+<h2>Счётчик лайков с эфира</h2>
+<p class="hint">Нужны TikFinity Desktop на этом же компьютере (подключён к вашему TikTok и в эфире). Откройте пульт на этом ПК, нажмите кнопку и разрешите доступ к локальной сети, если браузер спросит. Вкладку держите открытой на время эфира.</p>
+<div class="btns"><button onclick="bridge()">Подключить TikFinity</button></div>
+<label>Лайки сейчас</label><div class="big" id="btotal">0</div>
+<p class="hint" id="bstat">Не подключено</p>
+<label>Задать вручную (для проверки или если мост не нужен)</label>
+<div class="row"><input type="number" id="manual" placeholder="например 1200"><button onclick="setManual()">Установить</button></div>
+<div class="btns"><button onclick="addManual(100)">+100</button><button onclick="addManual(1000)">+1000</button><button onclick="addManual(5000)">+5000</button></div>
+
+<h2>Виджет лайков</h2>
+<label>Название</label><input type="text" data-w="L" data-k="title">
+<label>Подпись под названием</label><input type="text" data-w="L" data-k="subtitle">
+<label>Текст под числом</label><input type="text" data-w="L" data-k="label">
+<label>Название цели</label><input type="text" data-w="L" data-k="goalTitle">
+<div class="row">
+  <div><label>Цель (лайков)</label><input type="number" data-w="L" data-k="target"></div>
+  <div><label>Следующая цель на +</label><input type="number" data-w="L" data-k="step"></div>
+</div>
+<label class="chk"><input type="checkbox" data-w="L" data-k="autoNext"> После достижения ставить следующую цель</label>
+<label class="chk"><input type="checkbox" data-w="L" data-k="direct"> Виджет сам слушает TikFinity (если работает в студии)</label>
+<label>Заголовок уведомления о цели</label><input type="text" data-w="L" data-k="celeTitle">
+<label>Текст уведомления</label><input type="text" data-w="L" data-k="celeSub">
+<div class="row">
+  <div><label>Золото</label><input type="color" data-w="L" data-k="gold"></div>
+  <div><label>Зелень</label><input type="color" data-w="L" data-k="moss"></div>
+</div>
+<button class="main" onclick="send('L')">Применить на эфире</button>
+<div class="btns">
+  <button onclick="send('L',{visible:true})">Показать</button>
+  <button onclick="send('L',{visible:false})">Скрыть</button>
+  <button onclick="send('L',{test:Date.now()})">Проверить уведомление</button>
+</div>
+
+<h2>Виджет соцсетей</h2>
+<label>Название</label><input type="text" data-w="S" data-k="title">
+<label>Подпись под названием</label><input type="text" data-w="S" data-k="subtitle">
+<label>Соцсети (по одной в строке: сеть и ник)</label>
+<textarea data-w="S" data-k="itemsText"></textarea>
+<p class="hint">Сети с иконками: tiktok, instagram, youtube, telegram, x, discord. Любое другое слово получит значок-ссылку. Пример: <b>telegram @ovsyanka_team</b></p>
+<div class="row">
+  <div><label>Показ</label><select data-w="S" data-k="mode"><option value="list">Все сразу списком</option><option value="rotate">По одной по кругу</option></select></div>
+  <div><label>Секунд на одну</label><input type="number" data-w="S" data-k="seconds"></div>
+</div>
+<div class="row">
+  <div><label>Золото</label><input type="color" data-w="S" data-k="gold"></div>
+  <div><label>Зелень</label><input type="color" data-w="S" data-k="moss"></div>
+</div>
+<button class="main" onclick="send('S')">Применить на эфире</button>
+<div class="btns">
+  <button onclick="send('S',{visible:true})">Показать</button>
+  <button onclick="send('S',{visible:false})">Скрыть</button>
+</div>
+
+<script>
+const D = {
+  L:{title:"OVSYANKA", subtitle:"Team", label:"лайков на эфире", goalTitle:"Цель", target:10000, step:5000, autoNext:true,
+     celeTitle:"Цель достигнута!", celeSub:"Спасибо за каждый лайк", gold:"#d9b66c", moss:"#6f9a52", visible:true, direct:true, test:0},
+  S:{title:"OVSYANKA", subtitle:"Team", mode:"list", seconds:4, gold:"#d9b66c", moss:"#6f9a52", visible:true,
+     itemsText:"tiktok @ovsyanka.team\ninstagram @ovsyanka.team\ntelegram @ovsyanka_team"}
+};
+const SUF = {L:"-lk", S:"-so"};
+const $ = id => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const T = q.get("t") || localStorage.getItem("tw_topic") || ("tw-" + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 6));
+localStorage.setItem("tw_topic", T);
+const st = {
+  L:Object.assign({}, D.L, JSON.parse(localStorage.getItem("tw_sL_" + T) || "{}")),
+  S:Object.assign({}, D.S, JSON.parse(localStorage.getItem("tw_sS_" + T) || "{}"))
+};
+const base = u => new URL(u, location.href).href;
+$("l1").textContent = base("likes.html?t=" + T);
+$("l2").textContent = base("socials.html?t=" + T);
+$("l3").textContent = location.href.split("?")[0] + "?t=" + T;
+
+document.querySelectorAll("[data-w]").forEach(el => {
+  const v = st[el.dataset.w][el.dataset.k];
+  if (el.type === "checkbox") el.checked = !!v; else el.value = v;
+});
+function read(w){
+  document.querySelectorAll(`[data-w="${w}"]`).forEach(el => {
+    const k = el.dataset.k;
+    st[w][k] = el.type === "checkbox" ? el.checked : el.type === "number" ? (Number(el.value) || 0) : el.value;
+  });
+  if (w === "S") st.S.items = st.S.itemsText.split("\n").map(x => x.trim()).filter(Boolean).map(l => {
+    const [p, ...r] = l.split(/\s+/); const known = ["tiktok","instagram","youtube","telegram","x","discord"].includes(p.toLowerCase());
+    return known && r.length ? { p:p.toLowerCase(), h:r.join(" ") } : { p:"link", h:l };
+  });
+}
+function status(t, ok){ const e = $("status"); e.textContent = t; e.style.color = ok === false ? "#ff9a9a" : "#b6e08a"; }
+async function post(suffix, obj){
+  const r = await fetch("https://ntfy.sh/" + encodeURIComponent(T + suffix), { method:"POST", body:JSON.stringify(obj) });
+  if (!r.ok) throw new Error(r.status);
+}
+async function send(w, extra){
+  read(w); Object.assign(st[w], extra || {});
+  localStorage.setItem("tw_s" + w + "_" + T, JSON.stringify(st[w]));
+  try { await post(SUF[w], st[w]); status("Отправлено ✓ " + new Date().toLocaleTimeString()); }
+  catch (e) { status("Не отправилось (" + e.message + "). Подождите пару секунд и повторите.", false); }
+}
+async function pushLikes(n){
+  try { await post("-lv", { total:n }); status("Лайки отправлены ✓ " + n); }
+  catch (e) { status("Не отправилось (" + e.message + ")", false); }
+}
+let manual = 0;
+function setManual(){ manual = Math.max(0, Number($("manual").value) || 0); $("btotal").textContent = manual; pushLikes(manual); }
+function addManual(n){ manual += n; $("manual").value = manual; $("btotal").textContent = manual; pushLikes(manual); }
+function copy(id){ navigator.clipboard.writeText($(id).textContent).then(() => status("Скопировано ✓")); }
+
+/* Мост TikFinity -> виджет (передача раз в 5 секунд, если лайки изменились) */
+let bws, btotal = 0, dirty = false, started = false;
+function bridge(){
+  if (started) return; started = true; connect();
+  setInterval(() => { if (dirty){ dirty = false; post("-lv", { total:btotal }).catch(() => { dirty = true; }); } }, 5000);
+}
+function connect(){
+  try {
+    bws = new WebSocket("ws://127.0.0.1:21213/");
+    bws.onopen = () => $("bstat").textContent = "Подключено к TikFinity ✓ Ждём лайки из эфира";
+    bws.onmessage = e => { try {
+      const m = JSON.parse(e.data);
+      if (m.event === "like"){ const d = m.data || {};
+        if (typeof d.totalLikeCount === "number") btotal = d.totalLikeCount; else btotal += d.likeCount || 0;
+        $("btotal").textContent = btotal; dirty = true; }
+    } catch(_){} };
+    bws.onclose = () => { $("bstat").textContent = "Нет связи с TikFinity. Он запущен на этом ПК? Повтор через 5 с"; setTimeout(connect, 5000); };
+    bws.onerror = () => bws.close();
+  } catch (e) { $("bstat").textContent = "Браузер не дал подключиться: " + e.message; setTimeout(connect, 5000); }
+}
+</script>
+</body>
+</html>
