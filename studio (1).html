@@ -58,6 +58,7 @@ button.main{background:linear-gradient(90deg,#8f6a2c,#d9b66c);color:#1a1208;widt
 </div>
 <label class="chk"><input type="checkbox" data-w="L" data-k="autoNext"> После достижения ставить следующую цель</label>
 <label class="chk"><input type="checkbox" data-w="L" data-k="direct"> Виджет сам слушает TikFinity (если работает в студии)</label>
+<label>Слово перед остатком до цели</label><input type="text" data-w="L" data-k="remainText">
 <label>Заголовок уведомления о цели</label><input type="text" data-w="L" data-k="celeTitle">
 <label>Текст уведомления</label><input type="text" data-w="L" data-k="celeSub">
 <div class="row">
@@ -94,7 +95,7 @@ button.main{background:linear-gradient(90deg,#8f6a2c,#d9b66c);color:#1a1208;widt
 <script>
 const D = {
   L:{title:"OVSYANKA", subtitle:"Team", label:"лайков на эфире", goalTitle:"Цель", target:10000, step:5000, autoNext:true,
-     celeTitle:"Цель достигнута!", celeSub:"Спасибо за каждый лайк", gold:"#d9b66c", moss:"#6f9a52", visible:true, direct:true, test:0},
+     celeTitle:"Цель достигнута!", celeSub:"Спасибо за каждый лайк", remainText:"осталось", gold:"#d9b66c", moss:"#6f9a52", visible:true, direct:true, test:0},
   S:{title:"OVSYANKA", subtitle:"Team", mode:"list", seconds:4, gold:"#d9b66c", moss:"#6f9a52", visible:true,
      itemsText:"tiktok @ovsyanka.team\ninstagram @ovsyanka.team\ntelegram @ovsyanka_team"}
 };

@@ -78,7 +78,7 @@ document.querySelectorAll('.spray').forEach(e => e.innerHTML = SPRAY);
 const $ = id => document.getElementById(id);
 const T = new URLSearchParams(location.search).get("t");
 const DEF = {title:"OVSYANKA", subtitle:"Team", label:"лайков на эфире", goalTitle:"Цель", target:10000, step:5000, autoNext:true,
-  celeTitle:"Цель достигнута!", celeSub:"Спасибо за каждый лайк", gold:"#d9b66c", moss:"#6f9a52", visible:true, direct:true, test:0};
+  celeTitle:"Цель достигнута!", celeSub:"Спасибо за каждый лайк", remainText:"осталось", gold:"#d9b66c", moss:"#6f9a52", visible:true, direct:true, test:0};
 let cfg = Object.assign({}, DEF, JSON.parse(localStorage.getItem("tw_lk_cfg") || "{}"));
 let total = +localStorage.getItem("tw_lk_total") || 0, shown = 0, lastLevel = 0, lastTest = 0, ready = false, ct;
 const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009");
@@ -93,7 +93,7 @@ function render(){
   const L = lv();
   $("gname").textContent = cfg.goalTitle + ": " + fmt(L.eff);
   const pct = Math.max(0, Math.min(100, (total - L.prev) / ((L.eff - L.prev) || 1) * 100));
-  $("gnum").textContent = Math.floor(pct) + "%";
+  $("gnum").textContent = cfg.remainText + " " + fmt(Math.max(0, L.eff - total)) + " ♥";
   $("fill").style.width = pct + "%";
   if (L.level > lastLevel){ const r = L.reached; if (ready) setTimeout(() => celebrate(r), 1200); lastLevel = L.level; }
   else if (L.level < lastLevel) lastLevel = L.level;
