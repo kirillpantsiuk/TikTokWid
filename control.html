@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пульт виджета</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#120c24;color:#f2eeff;font-family:'Segoe UI',system-ui,sans-serif;padding:16px;max-width:620px;margin-inline:auto}
+h1{font-size:22px;margin:4px 0 12px}
+h2{font-size:15px;margin:20px 0 8px;color:#00e5ff}
+label{display:block;font-size:13px;opacity:.75;margin:10px 0 4px}
+input[type=text],input[type=number],textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #3a2d66;background:#1c1338;color:#fff;font-size:16px;font-family:inherit}
+textarea{min-height:100px;resize:vertical}
+.row{display:flex;gap:10px}.row>*{flex:1}
+input[type=color]{width:100%;height:44px;border:1px solid #3a2d66;border-radius:10px;background:#1c1338;padding:3px}
+button{padding:12px 14px;border:0;border-radius:12px;font-size:15px;font-weight:700;color:#fff;background:#3a2d66;cursor:pointer;font-family:inherit}
+button:active{transform:scale(.97)}
+button.main{background:linear-gradient(90deg,#ff2d95,#7b2dff);width:100%;padding:15px;font-size:17px;margin-top:16px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}.btns button{flex:1;min-width:90px}
+.box{background:#1c1338;border:1px solid #3a2d66;border-radius:12px;padding:10px 12px;font-size:13px;word-break:break-all;margin-top:6px}
+.box button{margin-top:8px;padding:8px 12px;font-size:13px}
+#status{position:sticky;top:0;padding:8px 12px;border-radius:10px;background:#1c1338;font-size:14px;margin-bottom:8px}
+.chk{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:15px}
+</style>
+</head>
+<body>
+<h1>Пульт виджета</h1>
+<div id="status">Готов</div>
+
+<h2>Ссылки</h2>
+<label>Для TikTok LIVE Studio (источник Link)</label>
+<div class="box"><span id="wl"></span><br><button onclick="copy('wl')">Копировать</button></div>
+<label>Этот пульт на телефоне (откройте по ссылке)</label>
+<div class="box"><span id="cl"></span><br><button onclick="copy('cl')">Копировать</button></div>
+
+<h2>Быстрые действия</h2>
+<div class="btns">
+  <button onclick="send({visible:true})">Показать</button>
+  <button onclick="send({visible:false})">Скрыть</button>
+  <button onclick="send({burst:Date.now()})">🎉 Салют</button>
+</div>
+<div class="btns" style="margin-top:8px">
+  <button onclick="bump(-1)">−1</button>
+  <button onclick="bump(1)">+1</button>
+  <button onclick="bump(10)">+10</button>
+  <button onclick="bump(100)">+100</button>
+</div>
+
+<h2>Тексты</h2>
+<label>Имя</label><input type="text" id="name">
+<label>Подзаголовок</label><input type="text" id="subtitle">
+<div class="row">
+  <div><label>Эмодзи аватарки</label><input type="text" id="avatarEmoji"></div>
+  <div><label>Секунд на сообщение</label><input type="number" id="messageSeconds" min="2"></div>
+</div>
+<label>Ссылка на картинку аватарки (необязательно, https://...)</label><input type="text" id="avatarImage">
+<label>Сообщения (каждое с новой строки)</label><textarea id="messages"></textarea>
+
+<h2>Цель</h2>
+<label>Название цели</label><input type="text" id="goalTitle">
+<div class="row">
+  <div><label>Сейчас</label><input type="number" id="current"></div>
+  <div><label>Нужно</label><input type="number" id="target"></div>
+</div>
+
+<h2>Цвета</h2>
+<div class="row">
+  <div><label>Цвет 1</label><input type="color" id="c1"></div>
+  <div><label>Цвет 2</label><input type="color" id="c2"></div>
+  <div><label>Цвет 3</label><input type="color" id="c3"></div>
+</div>
+<div class="btns" style="margin-top:10px">
+  <button onclick="preset('#ff2d95','#7b2dff','#00e5ff')">Неон</button>
+  <button onclick="preset('#bf953f','#aa771c','#fcf6ba')">Золото</button>
+  <button onclick="preset('#00e08a','#0a8f6a','#b6ffe6')">Мята</button>
+  <button onclick="preset('#ff6a00','#e8002d','#ffd200')">Огонь</button>
+</div>
+<label class="chk"><input type="checkbox" id="sparkles"> Летающие искры</label>
+
+<button class="main" onclick="send()">Применить на эфире</button>
+
+<script>
+const D = {
+  name:"Твоё имя", subtitle:"Заходи, будет жарко 🔥", avatarEmoji:"😎", avatarImage:"",
+  messages:["Подпишись, чтобы не пропустить эфир","Тапай по экрану — поддержи стрим ❤️","Пиши в чат — читаю всех"],
+  messageSeconds:4, goalTitle:"Цель: новые подписчики", current:120, target:500,
+  c1:"#ff2d95", c2:"#7b2dff", c3:"#00e5ff", sparkles:true, visible:true, burst:0
+};
+const $ = id => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const T = q.get("t") || localStorage.getItem("tw_topic") || ("tw-" + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 6));
+localStorage.setItem("tw_topic", T);
+const KEY = "tw_ctl_" + T;
+let s = Object.assign({}, D, JSON.parse(localStorage.getItem(KEY) || "{}"));
+
+$("wl").textContent = new URL("index.html?t=" + T, location.href).href;
+$("cl").textContent = location.href.split("?")[0] + "?t=" + T;
+
+const text = ["name","subtitle","avatarEmoji","avatarImage","goalTitle","c1","c2","c3"];
+const nums = ["messageSeconds","current","target"];
+function fill(){
+  text.forEach(k => $(k).value = s[k]);
+  nums.forEach(k => $(k).value = s[k]);
+  $("messages").value = s.messages.join("\n");
+  $("sparkles").checked = s.sparkles;
+}
+function read(){
+  text.forEach(k => s[k] = $(k).value);
+  nums.forEach(k => s[k] = Number($(k).value) || 0);
+  s.messages = $("messages").value.split("\n").map(x => x.trim()).filter(Boolean);
+  s.sparkles = $("sparkles").checked;
+}
+function status(t, ok){ const e = $("status"); e.textContent = t; e.style.color = ok === false ? "#ff7a9c" : "#7dffc4"; }
+async function send(extra){
+  read(); Object.assign(s, extra || {});
+  localStorage.setItem(KEY, JSON.stringify(s));
+  try {
+    const r = await fetch("https://ntfy.sh/" + encodeURIComponent(T), { method:"POST", body: JSON.stringify(s) });
+    if (!r.ok) throw new Error(r.status);
+    status("Отправлено ✓ " + new Date().toLocaleTimeString());
+  } catch (e) { status("Не отправилось (" + e.message + "). Проверьте интернет или подождите пару секунд.", false); }
+}
+function bump(n){ read(); s.current = Math.max(0, s.current + n); $("current").value = s.current; send(); }
+function preset(a, b, c){ $("c1").value = a; $("c2").value = b; $("c3").value = c; send(); }
+function copy(id){ navigator.clipboard.writeText($(id).textContent).then(() => status("Скопировано ✓")); }
+fill();
+</script>
+</body>
+</html>
