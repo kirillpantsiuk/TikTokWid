@@ -54,6 +54,11 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 @keyframes fall{to{transform:translate(var(--dx),calc(100vh + 80px)) rotate(var(--r))}}
 .mote{position:absolute;bottom:14px;border-radius:50%;background:#ffe9a8;box-shadow:0 0 8px #ffe9a8;pointer-events:none;animation:mote linear forwards}
 @keyframes mote{0%{opacity:0;transform:translate(0,0)}15%{opacity:.9}100%{opacity:0;transform:translate(var(--dx),-230px)}}
+.bar{position:relative}
+.goal.strip .bar{height:6px;padding:0;border:0;margin-top:16px;background:rgba(255,255,255,.16);overflow:visible}
+.goal.strip .bar::after{content:"";position:absolute;inset:-5px 0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),color-mix(in srgb,var(--gold) 60%,transparent) calc(10% - 1px) 10%)}
+.goal.strip .fill{background:linear-gradient(90deg,var(--moss),var(--gold));box-shadow:0 0 12px color-mix(in srgb,var(--gold) 70%,transparent)}
+.goal.strip .tip{width:12px;height:12px;right:-6px;top:-3px;border-radius:2px;background:#fff6d8;box-shadow:0 0 12px var(--gold);transform:rotate(45deg);animation:none}
 </style>
 </head>
 <body>
@@ -67,7 +72,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
    <div class="num metal" id="num">0</div>
   </div>
   <div class="lbl" id="lbl"></div>
-  <div class="goal"><div class="gt"><span id="gname"></span><span id="gnum"></span></div><div class="bar"><div class="fill" id="fill"><i class="tip"></i></div></div></div>
+  <div class="goal" id="goal"><div class="gt"><span id="gname"></span><span id="gnum"></span></div><div class="bar"><div class="fill" id="fill"><i class="tip"></i></div></div></div>
   <div class="cele" id="cele"><div class="ring"></div><div class="ring r2"></div><div class="c1 metal" id="c1"></div><div class="c2" id="c2"></div><div class="c3" id="c3"></div></div>
  </div></div></div>
 </div>
@@ -78,7 +83,7 @@ document.querySelectorAll('.spray').forEach(e => e.innerHTML = SPRAY);
 const $ = id => document.getElementById(id);
 const T = new URLSearchParams(location.search).get("t");
 const DEF = {title:"OVSYANKA", subtitle:"Team", label:"лайков на эфире", goalTitle:"Цель", target:10000, step:5000, autoNext:true,
-  celeTitle:"Цель достигнута!", celeSub:"Спасибо за каждый лайк", remainText:"осталось", gold:"#d9b66c", moss:"#6f9a52", visible:true, direct:true, test:0};
+  celeTitle:"Цель достигнута!", celeSub:"Спасибо за каждый лайк", remainText:"осталось", barStyle:"classic", gold:"#d9b66c", moss:"#6f9a52", visible:true, direct:true, test:0};
 let cfg = Object.assign({}, DEF, JSON.parse(localStorage.getItem("tw_lk_cfg") || "{}"));
 let total = +localStorage.getItem("tw_lk_total") || 0, shown = 0, lastLevel = 0, lastTest = 0, ready = false, ct;
 const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009");
@@ -122,6 +127,7 @@ function apply(c){
   const r = document.documentElement.style; r.setProperty("--gold", cfg.gold); r.setProperty("--moss", cfg.moss);
   $("title").textContent = cfg.title; $("subt").textContent = cfg.subtitle; $("lbl").textContent = cfg.label;
   $("pop").classList.toggle("hide", !cfg.visible);
+  $("goal").classList.toggle("strip", cfg.barStyle === "strip");
   if (cfg.test && cfg.test !== lastTest){ lastTest = cfg.test; if (ready) celebrate(lv().reached || cfg.target); }
   render();
 }
