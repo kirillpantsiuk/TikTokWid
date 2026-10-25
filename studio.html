@@ -131,6 +131,7 @@ button.main{background:linear-gradient(90deg,#8f6a2c,#d9b66c);color:#1a1208;widt
   <button onclick="plantCmd('resume')">Продолжить</button>
   <button onclick="plantCmd('reset')">Сбросить</button>
   <button onclick="plantCmd('skip')">+1 шаг роста</button>
+  <button onclick="plantCmd('full')">Показать готовое растение</button>
 </div>
 <div class="btns">
   <button onclick="send('P',{visible:true})">Показать</button>
@@ -233,7 +234,7 @@ function calcStep(){
 }
 async function plantCmd(type){
   const ms = type === "skip" ? Math.max(1, pv("stepSec")) * 1000 : 0;
-  const names = {start:"запущено с нуля", pause:"пауза", resume:"продолжает расти", reset:"сброшено", skip:"+1 шаг"};
+  const names = {start:"запущено с нуля", pause:"пауза", resume:"продолжает расти", reset:"сброшено", skip:"+1 шаг", full:"показано готовое растение"};
   try { await post("-plc", { type, ms }); status("Растение: " + names[type] + " ✓"); }
   catch (e) { status("Не отправилось (" + e.message + "). Подождите пару секунд и повторите.", false); }
 }

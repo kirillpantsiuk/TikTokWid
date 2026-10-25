@@ -74,7 +74,7 @@ let cfg = Object.assign({}, DEF, JSON.parse(localStorage.getItem("pl_cfg") || "{
 let S = Object.assign({base:0, running:false, since:0}, JSON.parse(localStorage.getItem("pl_state") || "{}"));
 const seen = new Set(JSON.parse(localStorage.getItem("pl_seen") || "[]"));
 if (!seen.size) S = {base:0, running:false, since:0};
-let leafEls = [], flowerEls = [], bsig = "", nL = 0, nF = 0, prevStep = null, lastTxt = "";
+let leafEls = [], flowerEls = [], bsig = "", nL = 0, nF = 0, prevStep = null, lastTxt = "", pendingSparks = 0;
 
 function leafSVG(i, o){
   const L1 = o.L1, B = o.B, W = o.W, y0 = -L1; let v = "";
@@ -149,6 +149,7 @@ function frame(){
   const step = Math.min(N - 1, Math.floor(el / sm));
   if (prevStep !== null && step > prevStep && S.running) sparks(18);
   prevStep = step;
+  if (pendingSparks){ sparks(pendingSparks); pendingSparks = 0; }
   const txt = done ? cfg.doneText : (!S.running && el === 0) ? "Ждём старта" : cfg.infoLabel + ": " + Math.floor(pct) + "%" + (!S.running ? " · пауза" : "");
   if (txt !== lastTxt){ $("info").textContent = txt; lastTxt = txt; }
   requestAnimationFrame(frame);
@@ -166,6 +167,7 @@ function fold(m){
   else if (c.type === "resume"){ if (!S.running){ S.running = true; S.since = t; } }
   else if (c.type === "reset") S = {base:0, running:false, since:0};
   else if (c.type === "skip") S.base += c.ms || 0;
+  else if (c.type === "full"){ S = {base:1e12, running:false, since:0}; if (Date.now() - t < 8000) pendingSparks = 40; }
   localStorage.setItem("pl_state", JSON.stringify(S));
 }
 function sub(topic, fn){
