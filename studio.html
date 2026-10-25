@@ -35,6 +35,8 @@ button.main{background:linear-gradient(90deg,#8f6a2c,#d9b66c);color:#1a1208;widt
 <div class="box"><span id="l1"></span><br><button onclick="copy('l1')">Копировать</button></div>
 <label>Виджет соцсетей (Link в TikTok LIVE Studio)</label>
 <div class="box"><span id="l2"></span><br><button onclick="copy('l2')">Копировать</button></div>
+<label>Виджет растения (Link в TikTok LIVE Studio)</label>
+<div class="box"><span id="l4"></span><br><button onclick="copy('l4')">Копировать</button></div>
 <label>Этот пульт на телефоне</label>
 <div class="box"><span id="l3"></span><br><button onclick="copy('l3')">Копировать</button></div>
 
@@ -98,6 +100,43 @@ button.main{background:linear-gradient(90deg,#8f6a2c,#d9b66c);color:#1a1208;widt
   <button onclick="send('S',{visible:false})">Скрыть</button>
 </div>
 
+<h2>Растение (спатифиллум «Сенсация»)</h2>
+<p class="hint">Растение растёт само: новые листья появляются один за другим, в конце расцветают белые цветки. Нажмите «Старт с нуля», когда начнёте эфир. Время идёт, даже если виджет перезагрузить.</p>
+<div class="row">
+  <div><label>Новый лист каждые, сек</label><input type="number" data-w="P" data-k="stepSec"></div>
+  <div><label>Раскрытие одного листа, сек</label><input type="number" data-w="P" data-k="unfurlSec"></div>
+</div>
+<div class="row">
+  <div><label>Листьев (1-10)</label><input type="number" data-w="P" data-k="leaves"></div>
+  <div><label>Цветков (0-4)</label><input type="number" data-w="P" data-k="flowers"></div>
+</div>
+<p class="hint" id="plTotal"></p>
+<label>Или: вырасти полностью за, мин</label>
+<div class="row"><input type="number" id="plMin" placeholder="например 60"><button onclick="calcStep()">Рассчитать частоту</button></div>
+<label>Название</label><input type="text" data-w="P" data-k="title">
+<label>Подпись</label><input type="text" data-w="P" data-k="subtitle">
+<label>Слово перед процентами</label><input type="text" data-w="P" data-k="infoLabel">
+<label>Текст, когда выросло полностью</label><input type="text" data-w="P" data-k="doneText">
+<label class="chk"><input type="checkbox" data-w="P" data-k="showPlaque"> Показывать табличку с названием</label>
+<label class="chk"><input type="checkbox" data-w="P" data-k="showInfo"> Показывать проценты роста</label>
+<div class="row">
+  <div><label>Золото</label><input type="color" data-w="P" data-k="gold"></div>
+  <div><label>Листья</label><input type="color" data-w="P" data-k="leaf"></div>
+  <div><label>Горшок</label><input type="color" data-w="P" data-k="pot"></div>
+</div>
+<button class="main" onclick="send('P')">Применить на эфире</button>
+<div class="btns">
+  <button onclick="plantCmd('start')">Старт с нуля</button>
+  <button onclick="plantCmd('pause')">Пауза</button>
+  <button onclick="plantCmd('resume')">Продолжить</button>
+  <button onclick="plantCmd('reset')">Сбросить</button>
+  <button onclick="plantCmd('skip')">+1 шаг роста</button>
+</div>
+<div class="btns">
+  <button onclick="send('P',{visible:true})">Показать</button>
+  <button onclick="send('P',{visible:false})">Скрыть</button>
+</div>
+
 <script>
 const D = {
   L:{title:"OVSYANKA", subtitle:"Team", label:"лайков на эфире", goalTitle:"Цель", target:10000, step:5000, autoNext:true,
@@ -105,7 +144,9 @@ const D = {
   S:{title:"OVSYANKA", subtitle:"Team", mode:"list", seconds:4, showFor:20, hideFor:10, gold:"#d9b66c", moss:"#6f9a52", visible:true,
      itemsText:"tiktok @ovsyanka.team\ninstagram @ovsyanka.team\ntelegram @ovsyanka_team"}
 };
-const SUF = {L:"-lk", S:"-so"};
+D.P = {title:"Спатифиллум", subtitle:"Sensation", infoLabel:"Растём", doneText:"Расцвело ✿", leaves:9, flowers:3,
+  stepSec:180, unfurlSec:40, gold:"#d9b66c", leaf:"#2f7a43", pot:"#eadcc0", showPlaque:true, showInfo:true, visible:true};
+const SUF = {L:"-lk", S:"-so", P:"-pl"};
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const T = q.get("t") || localStorage.getItem("tw_topic") || ("tw-" + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 6));
@@ -114,9 +155,11 @@ const st = {
   L:Object.assign({}, D.L, JSON.parse(localStorage.getItem("tw_sL_" + T) || "{}")),
   S:Object.assign({}, D.S, JSON.parse(localStorage.getItem("tw_sS_" + T) || "{}"))
 };
+st.P = Object.assign({}, D.P, JSON.parse(localStorage.getItem("tw_sP_" + T) || "{}"));
 const base = u => new URL(u, location.href).href;
 $("l1").textContent = base("likes.html?t=" + T);
 $("l2").textContent = base("socials.html?t=" + T);
+$("l4").textContent = base("plant.html?t=" + T);
 $("l3").textContent = location.href.split("?")[0] + "?t=" + T;
 
 document.querySelectorAll("[data-w]").forEach(el => {
@@ -173,6 +216,29 @@ function connect(){
     bws.onerror = () => bws.close();
   } catch (e) { $("bstat").textContent = "Браузер не дал подключиться: " + e.message; setTimeout(connect, 5000); }
 }
+
+/* Растение: команды и подсказки */
+const pv = k => Number(document.querySelector('[data-w="P"][data-k="' + k + '"]').value) || 0;
+function plTotal(){
+  const n = Math.max(1, pv("leaves")) + pv("flowers"), step = Math.max(1, pv("stepSec")), un = Math.max(1, pv("unfurlSec"));
+  const sec = (n - 1) * step + un * (pv("flowers") ? 1.4 : 1);
+  document.getElementById("plTotal").textContent = "Полный рост за ≈ " + (Math.round(sec / 6) / 10) + " мин (" + n + " шагов)";
+}
+function calcStep(){
+  const min = Number(document.getElementById("plMin").value) || 0; if (!min) return;
+  const n = Math.max(1, pv("leaves")) + pv("flowers");
+  const un = Math.max(1, pv("unfurlSec")) * (pv("flowers") ? 1.4 : 1);
+  const step = n > 1 ? Math.max(1, Math.round((min * 60 - un) / (n - 1))) : 1;
+  document.querySelector('[data-w="P"][data-k="stepSec"]').value = step; plTotal();
+}
+async function plantCmd(type){
+  const ms = type === "skip" ? Math.max(1, pv("stepSec")) * 1000 : 0;
+  const names = {start:"запущено с нуля", pause:"пауза", resume:"продолжает расти", reset:"сброшено", skip:"+1 шаг"};
+  try { await post("-plc", { type, ms }); status("Растение: " + names[type] + " ✓"); }
+  catch (e) { status("Не отправилось (" + e.message + "). Подождите пару секунд и повторите.", false); }
+}
+document.querySelectorAll('[data-w="P"]').forEach(e => e.addEventListener("input", plTotal));
+plTotal();
 </script>
 </body>
 </html>
